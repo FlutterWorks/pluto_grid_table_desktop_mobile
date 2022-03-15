@@ -1,8 +1,13 @@
-## [2.9.1] - 2021. 1. 11
+## [2.9.2] - 2022. 1. 27
+
+* Fixed locale number format.  
+  The number type number expression according to the locale of intl is applied.
+
+## [2.9.1] - 2022. 1. 11
 
 * Fixed a bug where `listener` of `keyManager` was not called when `enterKeyAction` was `none`.
 
-## [2.9.0] - 2021. 1. 6
+## [2.9.0] - 2022. 1. 6
 
 * Added expandedColumn of columnGroup.
 * Added row color animation when dragging rows.
