@@ -8,7 +8,9 @@ class ColumnHelper {
     double width = PlutoGridSettings.columnWidth,
     PlutoColumnFrozen frozen = PlutoColumnFrozen.none,
     bool readOnly = false,
+    bool hide = false,
     dynamic defaultValue = '',
+    PlutoColumnFooterRenderer? footerRenderer,
   }) {
     return Iterable<int>.generate(count).map((e) {
       e += start;
@@ -18,7 +20,9 @@ class ColumnHelper {
         width: width,
         frozen: frozen,
         readOnly: readOnly,
+        hide: hide,
         type: PlutoColumnType.text(defaultValue: defaultValue),
+        footerRenderer: footerRenderer,
       );
     }).toList();
   }
@@ -30,10 +34,12 @@ class ColumnHelper {
     double width = PlutoGridSettings.columnWidth,
     PlutoColumnFrozen frozen = PlutoColumnFrozen.none,
     bool readOnly = false,
+    bool hide = false,
     DateTime? startDate,
     DateTime? endDate,
     String format = 'yyyy-MM-dd',
     bool applyFormatOnInit = true,
+    PlutoColumnFooterRenderer? footerRenderer,
   }) {
     return Iterable<int>.generate(count).map((e) {
       e += start;
@@ -43,12 +49,14 @@ class ColumnHelper {
         width: width,
         frozen: frozen,
         readOnly: readOnly,
+        hide: hide,
         type: PlutoColumnType.date(
           startDate: startDate,
           endDate: endDate,
           format: format,
           applyFormatOnInit: applyFormatOnInit,
         ),
+        footerRenderer: footerRenderer,
       );
     }).toList();
   }
@@ -60,7 +68,9 @@ class ColumnHelper {
     double width = PlutoGridSettings.columnWidth,
     PlutoColumnFrozen frozen = PlutoColumnFrozen.none,
     bool readOnly = false,
+    bool hide = false,
     dynamic defaultValue = '00:00',
+    PlutoColumnFooterRenderer? footerRenderer,
   }) {
     return Iterable<int>.generate(count).map((e) {
       e += start;
@@ -70,9 +80,11 @@ class ColumnHelper {
         width: width,
         frozen: frozen,
         readOnly: readOnly,
+        hide: hide,
         type: PlutoColumnType.time(
           defaultValue: defaultValue,
         ),
+        footerRenderer: footerRenderer,
       );
     }).toList();
   }

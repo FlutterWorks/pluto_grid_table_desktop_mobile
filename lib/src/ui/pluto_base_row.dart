@@ -2,40 +2,57 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 
+import 'ui.dart';
+
 class PlutoBaseRow extends StatelessWidget {
-  final PlutoGridStateManager stateManager;
   final int rowIdx;
+
   final PlutoRow row;
+
   final List<PlutoColumn> columns;
 
+  final PlutoGridStateManager stateManager;
+
+  final bool visibilityLayout;
+
   const PlutoBaseRow({
-    required this.stateManager,
     required this.rowIdx,
     required this.row,
     required this.columns,
-    Key? key,
-  }) : super(key: key);
+    required this.stateManager,
+    this.visibilityLayout = false,
+    super.key,
+  });
+
+  bool _checkSameDragRows(PlutoRow draggingRow) {
+    final List<PlutoRow> selectedRows =
+        stateManager.currentSelectingRows.isNotEmpty
+            ? stateManager.currentSelectingRows
+            : [draggingRow];
+
+    final end = rowIdx + selectedRows.length;
+
+    for (int i = rowIdx; i < end; i += 1) {
+      if (stateManager.refRows[i].key != selectedRows[i - rowIdx].key) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 
   bool _handleOnWillAccept(PlutoRow? draggingRow) {
     if (draggingRow == null) {
       return false;
     }
 
-    final List<PlutoRow> selectedRows =
-        stateManager.currentSelectingRows.isNotEmpty
-            ? stateManager.currentSelectingRows
-            : [draggingRow];
-
-    return selectedRows.firstWhereOrNull(
-          (element) => element.key == row.key,
-        ) ==
-        null;
+    return !_checkSameDragRows(draggingRow);
   }
 
-  void _handleOnMove(DragTargetDetails<PlutoRow> details) async {
+  void _handleOnAccept(PlutoRow draggingRow) async {
     final draggingRows = stateManager.currentSelectingRows.isNotEmpty
         ? stateManager.currentSelectingRows
-        : [details.data];
+        : [draggingRow];
 
     stateManager.eventManager!.addEvent(
       PlutoGridDragRowsEvent(
@@ -45,16 +62,17 @@ class PlutoBaseRow extends StatelessWidget {
     );
   }
 
-  PlutoBaseCell _buildCell(PlutoColumn column) {
-    return PlutoBaseCell(
-      stateManager: stateManager,
-      cell: row.cells[column.field]!,
-      width: column.width,
-      height: stateManager.rowHeight,
-      column: column,
-      rowIdx: rowIdx,
-      row: row,
-      key: row.cells[column.field]!.key,
+  PlutoVisibilityLayoutId _makeCell(PlutoColumn column) {
+    return PlutoVisibilityLayoutId(
+      id: column.field,
+      child: PlutoBaseCell(
+        key: row.cells[column.field]!.key,
+        cell: row.cells[column.field]!,
+        column: column,
+        rowIdx: rowIdx,
+        row: row,
+        stateManager: stateManager,
+      ),
     );
   }
 
@@ -63,12 +81,30 @@ class PlutoBaseRow extends StatelessWidget {
       stateManager: stateManager,
       rowIdx: rowIdx,
       row: row,
-      columns: columns,
+      enableRowColorAnimation:
+          stateManager.configuration.style.enableRowColorAnimation,
       key: ValueKey('rowContainer_${row.key}'),
-      child: Row(
-        key: ValueKey('rowContainer_${row.key}_row'),
-        children: columns.map(_buildCell).toList(growable: false),
-      ),
+      child: visibilityLayout
+          ? PlutoVisibilityLayout(
+              key: ValueKey('rowContainer_${row.key}_row'),
+              delegate: _RowCellsLayoutDelegate(
+                stateManager: stateManager,
+                columns: columns,
+                textDirection: stateManager.textDirection,
+              ),
+              scrollController: stateManager.scroll.bodyRowsHorizontal!,
+              initialViewportDimension: MediaQuery.of(dragContext).size.width,
+              children: columns.map(_makeCell).toList(growable: false),
+            )
+          : CustomMultiChildLayout(
+              key: ValueKey('rowContainer_${row.key}_row'),
+              delegate: _RowCellsLayoutDelegate(
+                stateManager: stateManager,
+                columns: columns,
+                textDirection: stateManager.textDirection,
+              ),
+              children: columns.map(_makeCell).toList(growable: false),
+            ),
     );
   }
 
@@ -76,21 +112,77 @@ class PlutoBaseRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return DragTarget<PlutoRow>(
       onWillAccept: _handleOnWillAccept,
-      onMove: _handleOnMove,
+      onAccept: _handleOnAccept,
       builder: _dragTargetBuilder,
     );
   }
 }
 
-class _RowContainerWidget extends PlutoStatefulWidget {
+class _RowCellsLayoutDelegate extends MultiChildLayoutDelegate {
+  final PlutoGridStateManager stateManager;
+
+  final List<PlutoColumn> columns;
+
+  final TextDirection textDirection;
+
+  _RowCellsLayoutDelegate({
+    required this.stateManager,
+    required this.columns,
+    required this.textDirection,
+  }) : super(relayout: stateManager.resizingChangeNotifier);
+
   @override
+  Size getSize(BoxConstraints constraints) {
+    final double width = columns.fold(
+      0,
+      (previousValue, element) => previousValue + element.width,
+    );
+
+    return Size(width, stateManager.rowHeight);
+  }
+
+  @override
+  void performLayout(Size size) {
+    final isLTR = textDirection == TextDirection.ltr;
+    final items = isLTR ? columns : columns.reversed;
+    double dx = 0;
+
+    for (var element in items) {
+      var width = element.width;
+
+      if (hasChild(element.field)) {
+        layoutChild(
+          element.field,
+          BoxConstraints.tightFor(
+            width: width,
+            height: stateManager.rowHeight,
+          ),
+        );
+
+        positionChild(
+          element.field,
+          Offset(dx, 0),
+        );
+      }
+
+      dx += width;
+    }
+  }
+
+  @override
+  bool shouldRelayout(covariant MultiChildLayoutDelegate oldDelegate) {
+    return true;
+  }
+}
+
+class _RowContainerWidget extends PlutoStatefulWidget {
   final PlutoGridStateManager stateManager;
 
   final int rowIdx;
 
   final PlutoRow row;
 
-  final List<PlutoColumn> columns;
+  final bool enableRowColorAnimation;
 
   final Widget child;
 
@@ -98,170 +190,162 @@ class _RowContainerWidget extends PlutoStatefulWidget {
     required this.stateManager,
     required this.rowIdx,
     required this.row,
-    required this.columns,
+    required this.enableRowColorAnimation,
     required this.child,
     Key? key,
   }) : super(key: key);
 
   @override
-  __RowContainerWidgetState createState() => __RowContainerWidgetState();
+  State<_RowContainerWidget> createState() => _RowContainerWidgetState();
 }
 
-abstract class __RowContainerWidgetStateWithChangeKeepAlive
-    extends PlutoStateWithChangeKeepAlive<_RowContainerWidget> {
-  bool? _isCurrentRow;
+class _RowContainerWidgetState extends PlutoStateWithChange<_RowContainerWidget>
+    with
+        AutomaticKeepAliveClientMixin,
+        PlutoStateWithKeepAlive<_RowContainerWidget> {
+  @override
+  PlutoGridStateManager get stateManager => widget.stateManager;
 
-  bool? _isSelectedRow;
+  BoxDecoration _decoration = const BoxDecoration();
 
-  bool? _isSelecting;
+  Color get _oddRowColor => stateManager.configuration.style.oddRowColor == null
+      ? stateManager.configuration.style.rowColor
+      : stateManager.configuration.style.oddRowColor!;
 
-  bool? _isCheckedRow;
-
-  bool? _isDragTarget;
-
-  bool? _isTopDragTarget;
-
-  bool? _isBottomDragTarget;
-
-  bool? _hasCurrentSelectingPosition;
-
-  bool? _isFocusedCurrentRow;
-
-  Color? _rowColor;
+  Color get _evenRowColor =>
+      stateManager.configuration.style.evenRowColor == null
+          ? stateManager.configuration.style.rowColor
+          : stateManager.configuration.style.evenRowColor!;
 
   @override
-  void onChange() {
-    resetState((update) {
-      _isCurrentRow = update<bool?>(
-        _isCurrentRow,
-        widget.stateManager.currentRowIdx == widget.rowIdx,
-      );
+  void initState() {
+    super.initState();
 
-      _isSelectedRow = update<bool?>(
-        _isSelectedRow,
-        widget.stateManager.isSelectedRow(widget.row.key),
-      );
+    updateState(PlutoNotifierEventForceUpdate.instance);
+  }
 
-      _isSelecting =
-          update<bool?>(_isSelecting, widget.stateManager.isSelecting);
+  @override
+  void updateState(PlutoNotifierEvent event) {
+    _decoration = update<BoxDecoration>(
+      _decoration,
+      _getBoxDecoration(),
+    );
 
-      _isCheckedRow = update<bool?>(_isCheckedRow, widget.row.checked);
-
-      final alreadyTarget = widget.stateManager.dragRows
-              .firstWhereOrNull((element) => element.key == widget.row.key) !=
-          null;
-
-      final isDraggingRow = widget.stateManager.isDraggingRow;
-
-      _isDragTarget = update<bool?>(
-        _isDragTarget,
-        !alreadyTarget && widget.stateManager.isRowIdxDragTarget(widget.rowIdx),
-        ignoreChange: !isDraggingRow,
-      );
-
-      _isTopDragTarget = update<bool?>(
-        _isTopDragTarget,
-        isDraggingRow &&
-            widget.stateManager.isRowIdxTopDragTarget(widget.rowIdx),
-      );
-
-      _isBottomDragTarget = update<bool?>(
-        _isBottomDragTarget,
-        isDraggingRow &&
-            widget.stateManager.isRowIdxBottomDragTarget(widget.rowIdx),
-      );
-
-      _hasCurrentSelectingPosition = update<bool?>(
-        _hasCurrentSelectingPosition,
-        widget.stateManager.hasCurrentSelectingPosition,
-      );
-
-      _isFocusedCurrentRow = update<bool?>(
-        _isFocusedCurrentRow,
-        _isCurrentRow! && widget.stateManager.hasFocus,
-      );
-
-      _rowColor = update<Color?>(_rowColor, _getRowColor());
-
-      if (widget.stateManager.mode.isNormal) {
-        setKeepAlive(widget.stateManager.isRowBeingDragged(widget.row.key));
-      }
-    });
+    setKeepAlive(stateManager.isSelecting &&
+        stateManager.currentRowIdx == widget.rowIdx);
   }
 
   Color _getDefaultRowColor() {
-    if (widget.stateManager.rowColorCallback == null) {
-      return widget.stateManager.configuration!.gridBackgroundColor;
+    if (stateManager.rowColorCallback == null) {
+      return widget.rowIdx % 2 == 0 ? _oddRowColor : _evenRowColor;
     }
 
-    return widget.stateManager.rowColorCallback!(
+    return stateManager.rowColorCallback!(
       PlutoRowColorContext(
         rowIdx: widget.rowIdx,
         row: widget.row,
-        stateManager: widget.stateManager,
+        stateManager: stateManager,
       ),
     );
   }
 
-  Color _getRowColor() {
+  Color _getRowColor({
+    required bool isDragTarget,
+    required bool isFocusedCurrentRow,
+    required bool isSelecting,
+    required bool hasCurrentSelectingPosition,
+    required bool isCheckedRow,
+  }) {
     Color color = _getDefaultRowColor();
 
-    if (_isDragTarget!) {
-      color = widget.stateManager.configuration!.cellColorInReadOnlyState;
+    if (isDragTarget) {
+      color = stateManager.configuration.style.cellColorInReadOnlyState;
     } else {
-      final bool checkCurrentRow = !widget.stateManager.selectingMode.isRow &&
-          _isFocusedCurrentRow! &&
-          (!_isSelecting! && !_hasCurrentSelectingPosition!);
+      final bool checkCurrentRow = !stateManager.selectingMode.isRow &&
+          isFocusedCurrentRow &&
+          (!isSelecting && !hasCurrentSelectingPosition);
 
-      final bool checkSelectedRow = widget.stateManager.selectingMode.isRow &&
-          widget.stateManager.isSelectedRow(widget.row.key);
+      final bool checkSelectedRow = stateManager.selectingMode.isRow &&
+          stateManager.isSelectedRow(widget.row.key);
 
       if (checkCurrentRow || checkSelectedRow) {
-        color = widget.stateManager.configuration!.activatedColor;
+        color = stateManager.configuration.style.activatedColor;
       }
     }
 
-    return _isCheckedRow!
-        ? Color.alphaBlend(
-            widget.stateManager.configuration!.checkedColor,
-            color,
-          )
+    return isCheckedRow
+        ? Color.alphaBlend(stateManager.configuration.style.checkedColor, color)
         : color;
   }
 
   BoxDecoration _getBoxDecoration() {
+    final bool isCurrentRow = stateManager.currentRowIdx == widget.rowIdx;
+
+    final bool isSelecting = stateManager.isSelecting;
+
+    final bool isCheckedRow = widget.row.checked == true;
+
+    final alreadyTarget = stateManager.dragRows
+            .firstWhereOrNull((element) => element.key == widget.row.key) !=
+        null;
+
+    final isDraggingRow = stateManager.isDraggingRow;
+
+    final bool isDragTarget = isDraggingRow &&
+        !alreadyTarget &&
+        stateManager.isRowIdxDragTarget(widget.rowIdx);
+
+    final bool isTopDragTarget =
+        isDraggingRow && stateManager.isRowIdxTopDragTarget(widget.rowIdx);
+
+    final bool isBottomDragTarget =
+        isDraggingRow && stateManager.isRowIdxBottomDragTarget(widget.rowIdx);
+
+    final bool hasCurrentSelectingPosition =
+        stateManager.hasCurrentSelectingPosition;
+
+    final bool isFocusedCurrentRow = isCurrentRow && stateManager.hasFocus;
+
+    final Color rowColor = _getRowColor(
+      isDragTarget: isDragTarget,
+      isFocusedCurrentRow: isFocusedCurrentRow,
+      isSelecting: isSelecting,
+      hasCurrentSelectingPosition: hasCurrentSelectingPosition,
+      isCheckedRow: isCheckedRow,
+    );
+
     return BoxDecoration(
-      color: _rowColor,
+      color: rowColor,
       border: Border(
-        top: _isTopDragTarget!
+        top: isTopDragTarget
             ? BorderSide(
                 width: PlutoGridSettings.rowBorderWidth,
-                color: widget.stateManager.configuration!.activatedBorderColor,
+                color: stateManager.configuration.style.activatedBorderColor,
               )
             : BorderSide.none,
-        bottom: BorderSide(
-          width: PlutoGridSettings.rowBorderWidth,
-          color: _isBottomDragTarget!
-              ? widget.stateManager.configuration!.activatedBorderColor
-              : widget.stateManager.configuration!.borderColor,
-        ),
+        bottom: isBottomDragTarget
+            ? BorderSide(
+                width: PlutoGridSettings.rowBorderWidth,
+                color: stateManager.configuration.style.activatedBorderColor,
+              )
+            : stateManager.configuration.style.enableCellBorderHorizontal
+                ? BorderSide(
+                    width: PlutoGridSettings.rowBorderWidth,
+                    color: stateManager.configuration.style.borderColor,
+                  )
+                : BorderSide.none,
       ),
     );
   }
-}
 
-class __RowContainerWidgetState
-    extends __RowContainerWidgetStateWithChangeKeepAlive {
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
-    final _decoration = _getBoxDecoration();
-
     return _AnimatedOrNormalContainer(
-      enable: widget.stateManager.configuration!.enableRowColorAnimation,
-      child: widget.child,
+      enable: widget.enableRowColorAnimation,
       decoration: _decoration,
+      child: widget.child,
     );
   }
 }
@@ -288,9 +372,6 @@ class _AnimatedOrNormalContainer extends StatelessWidget {
             decoration: decoration,
             child: child,
           )
-        : Container(
-            decoration: decoration,
-            child: child,
-          );
+        : DecoratedBox(decoration: decoration, child: child);
   }
 }

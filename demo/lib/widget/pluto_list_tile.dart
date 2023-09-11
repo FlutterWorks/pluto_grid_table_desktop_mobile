@@ -35,6 +35,17 @@ class PlutoListTile extends StatelessWidget {
         _fontColor = Colors.white70,
         super(key: key);
 
+  const PlutoListTile.amber({
+    Key? key,
+    required this.title,
+    this.description,
+    this.onTapPreview,
+    this.onTapLiveDemo,
+    this.trailing,
+  })  : _color = Colors.amber,
+        _fontColor = Colors.black87,
+        super(key: key);
+
   final Color _color;
   final Color _fontColor;
 
@@ -70,13 +81,13 @@ class PlutoListTile extends StatelessWidget {
                     children: [
                       if (onTapPreview != null)
                         TextButton(
-                          child: const Text('Preview'),
                           onPressed: onTapPreview,
+                          child: const Text('Preview'),
                         ),
                       if (onTapLiveDemo != null)
                         TextButton(
-                          child: const Text('LiveDemo'),
                           onPressed: onTapLiveDemo,
+                          child: const Text('LiveDemo'),
                         ),
                     ],
                   ),

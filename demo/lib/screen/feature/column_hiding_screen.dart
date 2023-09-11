@@ -70,7 +70,7 @@ class _ColumnHidingScreenState extends State<ColumnHidingScreen> {
   void handleToggleColumnA() {
     PlutoColumn firstColumn = stateManager.refColumns.originalList.first;
 
-    stateManager.hideColumn(firstColumn.key, !firstColumn.hide);
+    stateManager.hideColumn(firstColumn, !firstColumn.hide);
   }
 
   void handleShowPopup(BuildContext context) {
@@ -103,8 +103,8 @@ class _ColumnHidingScreenState extends State<ColumnHidingScreen> {
               spacing: 10,
               children: [
                 ElevatedButton(
-                  child: const Text('Toggle hide Column A'),
                   onPressed: handleToggleColumnA,
+                  child: const Text('Toggle hide Column A'),
                 ),
                 ElevatedButton(
                   child: const Text('Show Popup'),

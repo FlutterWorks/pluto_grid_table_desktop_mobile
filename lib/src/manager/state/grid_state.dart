@@ -2,22 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 
 abstract class IGridState {
-  GlobalKey? get gridKey;
-
-  PlutoGridMode? get mode;
-
-  PlutoGridConfiguration? get configuration;
+  GlobalKey get gridKey;
 
   PlutoGridKeyManager? get keyManager;
 
   PlutoGridEventManager? get eventManager;
 
-  /// Event callback fired when cell value changes.
+  PlutoGridConfiguration get configuration;
+
+  PlutoGridMode get mode;
+
   PlutoOnChangedEventCallback? get onChanged;
 
-  /// Event callback that occurs when a row is selected
-  /// when the grid mode is selectRow.
   PlutoOnSelectedEventCallback? get onSelected;
+
+  PlutoOnSortedEventCallback? get onSorted;
 
   PlutoOnRowCheckedEventCallback? get onRowChecked;
 
@@ -27,183 +26,154 @@ abstract class IGridState {
 
   PlutoOnRowsMovedEventCallback? get onRowsMoved;
 
+  PlutoOnColumnsMovedEventCallback? get onColumnsMoved;
+
+  PlutoColumnMenuDelegate get columnMenuDelegate;
+
   CreateHeaderCallBack? get createHeader;
 
   CreateFooterCallBack? get createFooter;
 
   PlutoGridLocaleText get localeText;
 
-  void setGridKey(GlobalKey key);
+  PlutoGridStyleConfig get style;
+
+  /// To delegate sort handling in the [PlutoInfinityScrollRows] or [PlutoLazyPagination] widget
+  /// Whether to override the default sort processing.
+  /// If this value is true,
+  /// the default sorting processing of [PlutoGrid] is ignored and only events are issued.
+  /// [PlutoGridChangeColumnSortEvent]
+  bool get sortOnlyEvent;
+
+  /// To delegate filtering processing in the [PlutoInfinityScrollRows] or [PlutoLazyPagination] widget
+  /// Whether to override the default filtering processing.
+  /// If this value is true,
+  /// the default filtering processing of [PlutoGrid] is ignored and only events are issued.
+  /// [PlutoGridSetColumnFilterEvent]
+  bool get filterOnlyEvent;
 
   void setKeyManager(PlutoGridKeyManager keyManager);
 
   void setEventManager(PlutoGridEventManager eventManager);
 
+  void setConfiguration(
+    PlutoGridConfiguration configuration, {
+    bool updateLocale = true,
+    bool applyColumnFilter = true,
+  });
+
   void setGridMode(PlutoGridMode mode);
-
-  void setOnChanged(PlutoOnChangedEventCallback onChanged);
-
-  void setCreateHeader(CreateHeaderCallBack createHeader);
-
-  void setCreateFooter(CreateFooterCallBack createFooter);
-
-  void setOnSelected(PlutoOnSelectedEventCallback onSelected);
-
-  void setOnRowChecked(PlutoOnRowCheckedEventCallback? onRowChecked);
-
-  void setOnRowDoubleTap(PlutoOnRowDoubleTapEventCallback? onDoubleTap);
-
-  void setOnRowSecondaryTap(
-      PlutoOnRowSecondaryTapEventCallback? onSecondaryTap);
-
-  void setOnRowsMoved(PlutoOnRowsMovedEventCallback? onRowsMoved);
-
-  void setConfiguration(PlutoGridConfiguration configuration);
 
   void resetCurrentState({bool notify = true});
 
   /// Event occurred after selecting Row in Select mode.
   void handleOnSelected();
+
+  /// Set whether to ignore the default sort processing and issue only events.
+  /// [PlutoGridChangeColumnSortEvent]
+  void setSortOnlyEvent(bool flag);
+
+  /// Set whether to ignore the basic filtering process and issue only events.
+  /// [PlutoGridSetColumnFilterEvent]
+  void setFilterOnlyEvent(bool flag);
 }
 
-mixin GridState implements IPlutoGridState {
-  @override
-  GlobalKey? get gridKey => _gridKey;
-
-  GlobalKey? _gridKey;
-
-  @override
-  PlutoGridMode? get mode => _mode;
-
-  PlutoGridMode? _mode;
-
-  @override
-  PlutoGridConfiguration? get configuration => _configuration;
-
-  PlutoGridConfiguration? _configuration;
-
+class _State {
   PlutoGridKeyManager? _keyManager;
-
-  @override
-  PlutoGridKeyManager? get keyManager => _keyManager;
 
   PlutoGridEventManager? _eventManager;
 
-  @override
-  PlutoGridEventManager? get eventManager => _eventManager;
+  PlutoGridConfiguration? _configuration;
+
+  PlutoGridMode _mode = PlutoGridMode.normal;
+
+  bool _sortOnlyEvent = false;
+
+  bool _filterOnlyEvent = false;
+}
+
+mixin GridState implements IPlutoGridState {
+  final _State _state = _State();
 
   @override
-  PlutoOnChangedEventCallback? get onChanged => _onChanged;
-
-  PlutoOnChangedEventCallback? _onChanged;
+  PlutoGridKeyManager? get keyManager => _state._keyManager;
 
   @override
-  PlutoOnSelectedEventCallback? get onSelected => _onSelected;
-
-  PlutoOnSelectedEventCallback? _onSelected;
+  PlutoGridEventManager? get eventManager => _state._eventManager;
 
   @override
-  PlutoOnRowCheckedEventCallback? get onRowChecked => _onRowChecked;
-
-  PlutoOnRowCheckedEventCallback? _onRowChecked;
+  PlutoGridConfiguration get configuration => _state._configuration!;
 
   @override
-  PlutoOnRowDoubleTapEventCallback? get onRowDoubleTap => _onRowDoubleTap;
-
-  PlutoOnRowDoubleTapEventCallback? _onRowDoubleTap;
+  PlutoGridMode get mode => _state._mode;
 
   @override
-  PlutoOnRowSecondaryTapEventCallback? get onRowSecondaryTap =>
-      _onRowSecondaryTap;
-
-  PlutoOnRowSecondaryTapEventCallback? _onRowSecondaryTap;
+  PlutoGridLocaleText get localeText => configuration.localeText;
 
   @override
-  PlutoOnRowsMovedEventCallback? get onRowsMoved => _onRowsMoved;
-
-  PlutoOnRowsMovedEventCallback? _onRowsMoved;
+  PlutoGridStyleConfig get style => configuration.style;
 
   @override
-  CreateHeaderCallBack? get createHeader => _createHeader;
-
-  CreateHeaderCallBack? _createHeader;
+  bool get sortOnlyEvent => _state._sortOnlyEvent;
 
   @override
-  CreateFooterCallBack? get createFooter => _createFooter;
-
-  CreateFooterCallBack? _createFooter;
-
-  @override
-  PlutoGridLocaleText get localeText => configuration!.localeText;
+  bool get filterOnlyEvent => _state._filterOnlyEvent;
 
   @override
   void setKeyManager(PlutoGridKeyManager? keyManager) {
-    _keyManager = keyManager;
+    _state._keyManager = keyManager;
   }
 
   @override
   void setEventManager(PlutoGridEventManager? eventManager) {
-    _eventManager = eventManager;
+    _state._eventManager = eventManager;
   }
 
   @override
-  void setGridMode(PlutoGridMode? mode) {
-    _mode = mode;
+  void setConfiguration(
+    PlutoGridConfiguration configuration, {
+    bool updateLocale = true,
+    bool applyColumnFilter = true,
+  }) {
+    if (_state._configuration == configuration) return;
+
+    _state._configuration = configuration;
+
+    if (updateLocale) {
+      _state._configuration!.updateLocale();
+    }
+
+    if (applyColumnFilter) {
+      _state._configuration!.applyColumnFilter(refColumns.originalList);
+    }
   }
 
   @override
-  void setOnChanged(PlutoOnChangedEventCallback? onChanged) {
-    _onChanged = onChanged;
-  }
+  void setGridMode(PlutoGridMode mode) {
+    if (_state._mode == mode) return;
 
-  @override
-  void setOnSelected(PlutoOnSelectedEventCallback? onSelected) {
-    _onSelected = onSelected;
-  }
+    _state._mode = mode;
 
-  @override
-  void setOnRowChecked(PlutoOnRowCheckedEventCallback? onRowChecked) {
-    _onRowChecked = onRowChecked;
-  }
+    PlutoGridSelectingMode selectingMode;
 
-  @override
-  void setOnRowDoubleTap(PlutoOnRowDoubleTapEventCallback? onRowDoubleTap) {
-    _onRowDoubleTap = onRowDoubleTap;
-  }
+    switch (mode) {
+      case PlutoGridMode.normal:
+      case PlutoGridMode.readOnly:
+      case PlutoGridMode.popup:
+        selectingMode = this.selectingMode;
+        break;
+      case PlutoGridMode.select:
+      case PlutoGridMode.selectWithOneTap:
+        selectingMode = PlutoGridSelectingMode.none;
+        break;
+      case PlutoGridMode.multiSelect:
+        selectingMode = PlutoGridSelectingMode.row;
+        break;
+    }
 
-  @override
-  void setOnRowSecondaryTap(
-      PlutoOnRowSecondaryTapEventCallback? onRowSecondaryTap) {
-    _onRowSecondaryTap = onRowSecondaryTap;
-  }
+    setSelectingMode(selectingMode);
 
-  @override
-  void setOnRowsMoved(PlutoOnRowsMovedEventCallback? onRowsMoved) {
-    _onRowsMoved = onRowsMoved;
-  }
-
-  @override
-  void setCreateHeader(CreateHeaderCallBack? createHeader) {
-    _createHeader = createHeader;
-  }
-
-  @override
-  void setCreateFooter(CreateFooterCallBack? createFooter) {
-    _createFooter = createFooter;
-  }
-
-  @override
-  void setConfiguration(PlutoGridConfiguration? configuration) {
-    _configuration = configuration ?? const PlutoGridConfiguration();
-
-    _configuration!.updateLocale();
-
-    _configuration!.applyColumnFilter(refColumns);
-  }
-
-  @override
-  void setGridKey(GlobalKey key) {
-    _gridKey = key;
+    resetCurrentState();
   }
 
   @override
@@ -212,16 +182,32 @@ mixin GridState implements IPlutoGridState {
 
     clearCurrentSelecting(notify: false);
 
-    if (notify) {
-      notifyListeners();
-    }
+    setEditing(false, notify: false);
+
+    notifyListeners(notify, resetCurrentState.hashCode);
   }
 
   @override
   void handleOnSelected() {
-    if (_mode.isSelect == true && _onSelected != null) {
-      _onSelected!(
-          PlutoGridOnSelectedEvent(row: currentRow, cell: currentCell));
+    if (mode.isSelectMode == true && onSelected != null) {
+      onSelected!(
+        PlutoGridOnSelectedEvent(
+          row: currentRow,
+          rowIdx: currentRowIdx,
+          cell: currentCell,
+          selectedRows: mode.isMultiSelectMode ? currentSelectingRows : null,
+        ),
+      );
     }
+  }
+
+  @override
+  void setSortOnlyEvent(bool flag) {
+    _state._sortOnlyEvent = flag;
+  }
+
+  @override
+  void setFilterOnlyEvent(bool flag) {
+    _state._filterOnlyEvent = flag;
   }
 }

@@ -45,4 +45,39 @@ class PlutoDateTimeHelper {
       return null;
     }
   }
+
+  /// Returns whether [date] is in the range [start] and [end].
+  static bool isValidRange({
+    required DateTime date,
+    required DateTime? start,
+    required DateTime? end,
+  }) {
+    if (start != null && date.isBefore(start)) {
+      return false;
+    }
+
+    if (end != null && date.isAfter(end)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /// Returns whether [date] is in the range
+  /// of the first day of [start.month] and the last day of [end.month].
+  static bool isValidRangeInMonth({
+    required DateTime date,
+    required DateTime? start,
+    required DateTime? end,
+  }) {
+    if (start != null && date.isBefore(DateTime(start.year, start.month, 1))) {
+      return false;
+    }
+
+    if (end != null && date.isAfter(DateTime(end.year, end.month + 1, 0))) {
+      return false;
+    }
+
+    return true;
+  }
 }

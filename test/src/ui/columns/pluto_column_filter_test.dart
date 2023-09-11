@@ -1,21 +1,16 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:pluto_grid/pluto_grid.dart';
+import 'package:pluto_grid/src/ui/ui.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../../../matcher/pluto_object_matcher.dart';
-import 'pluto_column_filter_test.mocks.dart';
+import '../../../mock/shared_mocks.mocks.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<PlutoGridStateManager>(returnNullOnMissingStub: true),
-  MockSpec<PlutoGridEventManager>(returnNullOnMissingStub: true),
-  MockSpec<StreamSubscription>(returnNullOnMissingStub: true),
-])
 void main() {
   late MockPlutoGridStateManager stateManager;
+  late PublishSubject<PlutoNotifierEvent> subject;
   MockPlutoGridEventManager? eventManager;
   MockStreamSubscription<PlutoGridEvent> streamSubscription;
 
@@ -23,19 +18,27 @@ void main() {
     stateManager = MockPlutoGridStateManager();
     eventManager = MockPlutoGridEventManager();
     streamSubscription = MockStreamSubscription();
+    subject = PublishSubject<PlutoNotifierEvent>();
 
+    const configuration = PlutoGridConfiguration();
     when(stateManager.eventManager).thenReturn(eventManager);
-    when(stateManager.configuration).thenReturn(const PlutoGridConfiguration());
+    when(stateManager.configuration).thenReturn(configuration);
+    when(stateManager.style).thenReturn(configuration.style);
+    when(stateManager.streamNotifier).thenAnswer((_) => subject);
     when(stateManager.localeText).thenReturn(const PlutoGridLocaleText());
     when(stateManager.filterRowsByField(any)).thenReturn([]);
     when(stateManager.columnHeight).thenReturn(
-      stateManager.configuration!.columnHeight,
+      stateManager.configuration.style.columnHeight,
     );
     when(stateManager.columnFilterHeight).thenReturn(
-      stateManager.configuration!.columnFilterHeight,
+      stateManager.configuration.style.columnFilterHeight,
     );
 
     when(eventManager!.listener(any)).thenReturn(streamSubscription);
+  });
+
+  tearDown(() {
+    subject.close();
   });
 
   testWidgets(

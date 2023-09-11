@@ -1,4 +1,4 @@
-## PlutoGrid for flutter - v2.9.2
+## PlutoGrid for flutter - v7.0.2
 
 [![Awesome Flutter](https://img.shields.io/badge/Awesome-Flutter-blue.svg)](https://github.com/Solido/awesome-flutter)
 [![codecov](https://codecov.io/gh/bosskmk/pluto_grid/branch/master/graph/badge.svg)](https://codecov.io/gh/bosskmk/pluto_grid)
@@ -24,7 +24,7 @@ If you comment on an issue, mobile improvements can be made quickly.
 
 <br>
 
-### [Documentation](https://github.com/bosskmk/pluto_grid/wiki)
+### [Documentation](https://pluto.weblaze.dev/series/pluto-grid)
 > The documentation has more details.
 
 <br>
@@ -39,6 +39,14 @@ If you comment on an issue, mobile improvements can be made quickly.
 
 <br>
 
+### Packages
+
+> [PlutoGridExport](https://github.com/bosskmk/pluto_grid/tree/master/packages/pluto_grid_export)  
+> This package can export the metadata of PlutoGrid as CSV or PDF.
+
+
+<br>
+
 ### Screenshots
 
 #### Change the color of the rows or make the cells look the way you want them.
@@ -47,7 +55,7 @@ If you comment on an issue, mobile improvements can be made quickly.
 <br>
 
 #### Date type input can be easily selected by pop-up and keyboard.
-![PlutoGrid Select Popup](https://bosskmk.github.io/images/pluto_grid/2.8.0/pluto_grid_2.8.0_02.png)
+![PlutoGrid Select Popup](https://bosskmk.github.io/images/pluto_grid/3.1.0/pluto_grid_3.1.0_01.png)
 
 <br>
 
@@ -163,26 +171,32 @@ Widget build(BuildContext context) {
 
 ### Flutter version compatible
 
-| Flutter         | PlutoGrid       |
-|-----------------|-----------------|
-| 2.5.0 or higher | 2.5.0 or higher |
+| Flutter          | PlutoGrid             |
+|------------------|-----------------------|
+| 3.10.0 or higher | 7.0.0 or higher       |
+| 3.7.0 or higher  | 6.0.0 or higher       |
+| 3.3.0 or higher  | 5.0.6 or higher       |
+| 3.0.0 or higher  | 3.0.0-0.pre or higher |
+| 2.5.0 or higher  | 2.5.0 or higher       |
 
 For other versions, contact the issue
 
 <br>
 
-### Pluto series
+### Related packages
 > develop packages that make it easy to develop admin pages or CMS with Flutter.
 * [PlutoGrid](https://github.com/bosskmk/pluto_grid)
 * [PlutoMenuBar](https://github.com/bosskmk/pluto_menu_bar)
+* [PlutoLayout](https://github.com/bosskmk/pluto_layout)
 
 <br>
 
-### Support
+### Donate to this project
 
 [![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/white_img.png)](https://www.buymeacoffee.com/manki)
 
 <br>
 
-### License
-> MIT
+### Jetbrains provides a free license
+
+[<img alt="IDE license support" src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" width="170"/>](https://www.jetbrains.com/community/opensource/#support)

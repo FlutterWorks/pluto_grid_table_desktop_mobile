@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pluto_grid/pluto_grid.dart';
+import 'package:pluto_grid/src/ui/ui.dart';
 
 import '../../helper/column_helper.dart';
 import '../../helper/pluto_widget_test_helper.dart';
@@ -21,8 +22,9 @@ void main() {
     double rowHeight = 45.0,
   }) {
     // given
-    final _columns = columns ?? ColumnHelper.textColumn('header', count: 10);
-    final rows = RowHelper.count(numberOfRows, _columns);
+    final safetyColumns =
+        columns ?? ColumnHelper.textColumn('header', count: 10);
+    final rows = RowHelper.count(numberOfRows, safetyColumns);
 
     return PlutoWidgetTestHelper(
       'build with setting row height.',
@@ -31,7 +33,7 @@ void main() {
           MaterialApp(
             home: Material(
               child: PlutoGrid(
-                columns: _columns,
+                columns: safetyColumns,
                 rows: rows,
                 onLoaded: (PlutoGridOnLoadedEvent event) {
                   stateManager = event.stateManager;
@@ -43,7 +45,9 @@ void main() {
                   );
                 },
                 configuration: PlutoGridConfiguration(
-                  rowHeight: rowHeight,
+                  style: PlutoGridStyleConfig(
+                    rowHeight: rowHeight,
+                  ),
                 ),
               ),
             ),
@@ -78,9 +82,9 @@ void main() {
     buildRowsWithSettingRowHeight(rowHeight: rowHeight).test(
       'CellWidget 의 높이가 설정 한 높이 값을 가져야 한다.',
       (tester) async {
-        final cellWidget =
-            find.byType(PlutoBaseCell).evaluate().first.widget as PlutoBaseCell;
-        expect(cellWidget.height, rowHeight);
+        final Size cellSize = tester.getSize(find.byType(PlutoBaseCell).first);
+
+        expect(cellSize.height, rowHeight);
       },
     );
 
@@ -107,14 +111,13 @@ void main() {
         await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
         final popupGrid = find.byType(PlutoGrid).last;
-        final cellOfSelectPopup = find
+
+        final Size cellPopupSize = tester.getSize(find
             .descendant(of: popupGrid, matching: find.byType(PlutoBaseCell))
-            .evaluate()
-            .first
-            .widget as PlutoBaseCell;
+            .first);
 
         // select 팝업 높이 확인
-        expect(cellOfSelectPopup.height, rowHeight);
+        expect(cellPopupSize.height, rowHeight);
       },
     );
 
@@ -136,7 +139,7 @@ void main() {
         await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
         final sundayColumn =
-            find.text(stateManager!.configuration!.localeText.sunday);
+            find.text(stateManager!.configuration.localeText.sunday);
 
         expect(
           sundayColumn,
@@ -146,12 +149,12 @@ void main() {
         // date 팝업의 CellWidget 높이 확인
         final parent =
             find.ancestor(of: sundayColumn, matching: find.byType(PlutoGrid));
-        final cellWidget = find
+
+        final Size cellSize = tester.getSize(find
             .descendant(of: parent, matching: find.byType(PlutoBaseCell))
-            .evaluate()
-            .first
-            .widget as PlutoBaseCell;
-        expect(cellWidget.height, rowHeight);
+            .first);
+
+        expect(cellSize.height, rowHeight);
       },
     );
 
@@ -173,7 +176,7 @@ void main() {
         await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
         final hourColumn =
-            find.text(stateManager!.configuration!.localeText.hour);
+            find.text(stateManager!.configuration.localeText.hour);
 
         expect(
           hourColumn,
@@ -183,12 +186,12 @@ void main() {
         // time 팝업의 CellWidget 높이 확인
         final parent =
             find.ancestor(of: hourColumn, matching: find.byType(PlutoGrid));
-        final cellWidget = find
+
+        final Size cellSize = tester.getSize(find
             .descendant(of: parent, matching: find.byType(PlutoBaseCell))
-            .evaluate()
-            .first
-            .widget as PlutoBaseCell;
-        expect(cellWidget.height, rowHeight);
+            .first);
+
+        expect(cellSize.height, rowHeight);
       },
     );
   });

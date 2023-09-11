@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pluto_grid/pluto_grid.dart';
+import 'package:pluto_grid/src/ui/ui.dart';
 
 import '../../helper/column_helper.dart';
 import '../../helper/pluto_widget_test_helper.dart';
@@ -36,7 +38,7 @@ void main() {
 
     List<PlutoRow> rows;
 
-    PlutoGridStateManager? stateManager;
+    late PlutoGridStateManager stateManager;
 
     late Finder pageButtons;
 
@@ -66,7 +68,7 @@ void main() {
                 onLoaded: (PlutoGridOnLoadedEvent event) {
                   stateManager = event.stateManager;
                 },
-                createFooter: (_stateManager) => PlutoPagination(_stateManager),
+                createFooter: (s) => PlutoPagination(s),
               ),
             ),
           ),
@@ -74,9 +76,10 @@ void main() {
 
         pageButtons = find.byType(TextButton);
 
-        defaultButtonColor = stateManager!.configuration!.iconColor;
+        defaultButtonColor = stateManager.configuration.style.iconColor;
 
-        activateButtonColor = stateManager!.configuration!.activatedBorderColor;
+        activateButtonColor =
+            stateManager.configuration.style.activatedBorderColor;
       },
     );
 
@@ -118,23 +121,23 @@ void main() {
 
     grid.test('100 개의 행의 셀 값이 0~99 까지 설정 되어야 한다.', (tester) async {
       // 테스트를 위해 셀 값을 순서대로 0~99 까지 설정.
-      final _rows = stateManager!.refRows.originalList;
+      final rows = stateManager.refRows.originalList;
 
-      expect(_rows[0].cells[headerName]!.value, 0);
+      expect(rows[0].cells[headerName]!.value, 0);
 
-      expect(_rows[50].cells[headerName]!.value, 50);
+      expect(rows[50].cells[headerName]!.value, 50);
 
-      expect(_rows[99].cells[headerName]!.value, 99);
+      expect(rows[99].cells[headerName]!.value, 99);
     });
 
     grid.test('첫페이지의 행이 40개 렌더링 되어야 한다.', (tester) async {
-      final _rows = stateManager!.rows;
+      final rows = stateManager.rows;
 
-      expect(_rows.first.cells[headerName]!.value, 0);
+      expect(rows.first.cells[headerName]!.value, 0);
 
-      expect(_rows.last.cells[headerName]!.value, 39);
+      expect(rows.last.cells[headerName]!.value, 39);
 
-      expect(_rows.length, 40);
+      expect(rows.length, 40);
     });
 
     grid.test('2 페이지로 이동 하면 2번 페이징 버튼이 활성화 되어야 한다.', (tester) async {
@@ -158,13 +161,13 @@ void main() {
 
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
-      final _rows = stateManager!.rows;
+      final rows = stateManager.rows;
 
-      expect(_rows.length, 40);
+      expect(rows.length, 40);
 
-      expect(_rows.first.cells[headerName]!.value, 40);
+      expect(rows.first.cells[headerName]!.value, 40);
 
-      expect(_rows.last.cells[headerName]!.value, 79);
+      expect(rows.last.cells[headerName]!.value, 79);
     });
 
     grid.test('3 페이지로 이동 하면 3번 페이징 버튼이 활성화 되어야 한다.', (tester) async {
@@ -192,13 +195,71 @@ void main() {
 
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
-      final _rows = stateManager!.rows;
+      final rows = stateManager.rows;
 
-      expect(_rows.length, 20);
+      expect(rows.length, 20);
 
-      expect(_rows.first.cells[headerName]!.value, 80);
+      expect(rows.first.cells[headerName]!.value, 80);
 
-      expect(_rows.last.cells[headerName]!.value, 99);
+      expect(rows.last.cells[headerName]!.value, 99);
+    });
+
+    grid.test('Alt + Page Down/Up 조합으로 페이지를 이동 할 수 있어야 한다.', (tester) async {
+      await tester.tap(find.byType(PlutoBaseCell).first);
+
+      await tester.pump();
+
+      expect(stateManager.page, 1);
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.alt);
+      await tester.sendKeyEvent(LogicalKeyboardKey.pageDown);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.alt);
+
+      await tester.pumpAndSettle();
+
+      expect(stateManager.page, 2);
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.alt);
+      await tester.sendKeyEvent(LogicalKeyboardKey.pageDown);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.alt);
+
+      await tester.pumpAndSettle();
+
+      expect(stateManager.page, 3);
+
+      // 마지막 페이지에서 한번 더 다음 페이지를 호출하면 여전히 마지막 페이지 여야 한다.
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.alt);
+      await tester.sendKeyEvent(LogicalKeyboardKey.pageDown);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.alt);
+
+      await tester.pumpAndSettle();
+
+      expect(stateManager.page, 3);
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.alt);
+      await tester.sendKeyEvent(LogicalKeyboardKey.pageUp);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.alt);
+
+      await tester.pumpAndSettle();
+
+      expect(stateManager.page, 2);
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.alt);
+      await tester.sendKeyEvent(LogicalKeyboardKey.pageUp);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.alt);
+
+      await tester.pumpAndSettle();
+
+      expect(stateManager.page, 1);
+
+      // 첫 페이지에서 한번 더 이전 페이지를 호출하면 여전히 첫 페이지 여야 한다.
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.alt);
+      await tester.sendKeyEvent(LogicalKeyboardKey.pageUp);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.alt);
+
+      await tester.pumpAndSettle();
+
+      expect(stateManager.page, 1);
     });
   });
 }

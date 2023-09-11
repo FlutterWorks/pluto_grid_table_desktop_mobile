@@ -5,10 +5,13 @@ import 'package:pluto_grid/pluto_grid.dart';
 import '../../../helper/column_helper.dart';
 import '../../../helper/pluto_widget_test_helper.dart';
 import '../../../helper/row_helper.dart';
+import '../../../mock/shared_mocks.mocks.dart';
 
 void main() {
   group('속성 값 테스트.', () {
     late PlutoGridStateManager stateManager;
+
+    PlutoGridEventManager eventManager;
 
     List<PlutoColumn> columns;
 
@@ -22,7 +25,7 @@ void main() {
             ...ColumnHelper.textColumn(
               'left',
               count: 1,
-              frozen: PlutoColumnFrozen.left,
+              frozen: PlutoColumnFrozen.start,
               width: 150,
             ),
             ...ColumnHelper.textColumn(
@@ -33,20 +36,23 @@ void main() {
             ...ColumnHelper.textColumn(
               'right',
               count: 1,
-              frozen: PlutoColumnFrozen.right,
+              frozen: PlutoColumnFrozen.end,
               width: 150,
             ),
           ];
 
           rows = RowHelper.count(10, columns);
 
+          eventManager = MockPlutoGridEventManager();
+
           stateManager = PlutoGridStateManager(
             columns: columns,
             rows: rows,
-            gridFocusNode: null,
-            scroll: null,
+            gridFocusNode: MockFocusNode(),
+            scroll: MockPlutoGridScrollController(),
           );
 
+          stateManager.setEventManager(eventManager);
           stateManager
               .setLayout(BoxConstraints(maxWidth: maxWidth, maxHeight: 500));
           stateManager.setGridGlobalOffset(Offset.zero);
@@ -80,26 +86,24 @@ void main() {
     );
 
     hasFrozenColumnAndWidthEnough.test(
-      'bodyLeftScrollOffset 값에 왼쪽 고정 컬럼 넓이가 포함 되어야 한다.',
+      'bodyLeftScrollOffset 값이 일치해야 한다.',
       (tester) async {
         expect(
           stateManager.bodyLeftScrollOffset,
           stateManager.gridGlobalOffset!.dx +
               PlutoGridSettings.gridPadding +
               PlutoGridSettings.gridBorderWidth +
-              stateManager.leftFrozenColumnsWidth +
               PlutoGridSettings.offsetScrollingFromEdge,
         );
       },
     );
 
     hasFrozenColumnAndWidthEnough.test(
-      'bodyRightScrollOffset 값에 우측 고정 컬럼 넓이가 포함 되어야 한다.',
+      'bodyRightScrollOffset 값이 일치해야 한다.',
       (tester) async {
         expect(
           stateManager.bodyRightScrollOffset,
           (stateManager.gridGlobalOffset!.dx + stateManager.maxWidth!) -
-              stateManager.rightFrozenColumnsWidth -
               PlutoGridSettings.offsetScrollingFromEdge,
         );
       },
@@ -131,26 +135,24 @@ void main() {
     );
 
     hasFrozenColumnAndWidthNotEnough.test(
-      'bodyLeftScrollOffset 값에 왼쪽 고정 컬럼 넓이가 포함 되지 않아야 한다.',
+      'bodyLeftScrollOffset 값이 일치해야 한다.',
       (tester) async {
         expect(
           stateManager.bodyLeftScrollOffset,
           stateManager.gridGlobalOffset!.dx +
               PlutoGridSettings.gridPadding +
               PlutoGridSettings.gridBorderWidth +
-              // stateManager.leftFrozenColumnsWidth +
               PlutoGridSettings.offsetScrollingFromEdge,
         );
       },
     );
 
     hasFrozenColumnAndWidthNotEnough.test(
-      'bodyRightScrollOffset 값에 우측 고정 컬럼 넓이가 포함 되지 않아야 한다.',
+      'bodyRightScrollOffset 값이 일치해야 한다.',
       (tester) async {
         expect(
           stateManager.bodyRightScrollOffset,
           (stateManager.gridGlobalOffset!.dx + stateManager.maxWidth!) -
-              // stateManager.rightFrozenColumnsWidth -
               PlutoGridSettings.offsetScrollingFromEdge,
         );
       },

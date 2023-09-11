@@ -25,10 +25,10 @@ class PlutoSelectCell extends StatefulWidget implements PopupCell {
   }) : super(key: key);
 
   @override
-  _PlutoSelectCellState createState() => _PlutoSelectCellState();
+  PlutoSelectCellState createState() => PlutoSelectCellState();
 }
 
-class _PlutoSelectCellState extends State<PlutoSelectCell>
+class PlutoSelectCellState extends State<PlutoSelectCell>
     with PopupCellState<PlutoSelectCell> {
   @override
   List<PlutoColumn> popupColumns = [];
@@ -37,9 +37,7 @@ class _PlutoSelectCellState extends State<PlutoSelectCell>
   List<PlutoRow> popupRows = [];
 
   @override
-  Icon? icon = const Icon(
-    Icons.arrow_drop_down,
-  );
+  IconData? get icon => widget.column.type.select.popupIcon;
 
   late bool enableColumnFilter;
 
@@ -47,19 +45,20 @@ class _PlutoSelectCellState extends State<PlutoSelectCell>
   void initState() {
     super.initState();
 
-    enableColumnFilter = widget.column.type.select!.enableColumnFilter;
+    enableColumnFilter = widget.column.type.select.enableColumnFilter;
 
     final columnFilterHeight = enableColumnFilter
-        ? widget.stateManager.configuration!.columnFilterHeight
+        ? widget.stateManager.configuration.style.columnFilterHeight
         : 0;
 
-    final rowsHeight = widget.column.type.select!.items.length *
+    final rowsHeight = widget.column.type.select.items.length *
         widget.stateManager.rowTotalHeight;
 
-    popupHeight = widget.stateManager.columnHeight +
+    popupHeight = widget.stateManager.configuration.style.columnHeight +
         columnFilterHeight +
         rowsHeight +
-        PlutoGridSettings.gridInnerSpacing;
+        PlutoGridSettings.gridInnerSpacing +
+        PlutoGridSettings.gridBorderWidth;
 
     fieldOnSelected = widget.column.title;
 
@@ -76,7 +75,7 @@ class _PlutoSelectCellState extends State<PlutoSelectCell>
       )
     ];
 
-    popupRows = widget.column.type.select!.items.map((dynamic item) {
+    popupRows = widget.column.type.select.items.map((dynamic item) {
       return PlutoRow(
         cells: {
           widget.column.title: PlutoCell(value: item),

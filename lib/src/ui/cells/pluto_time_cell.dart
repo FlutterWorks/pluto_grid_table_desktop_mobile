@@ -25,10 +25,10 @@ class PlutoTimeCell extends StatefulWidget implements PopupCell {
   }) : super(key: key);
 
   @override
-  _PlutoTimeCellState createState() => _PlutoTimeCellState();
+  PlutoTimeCellState createState() => PlutoTimeCellState();
 }
 
-class _PlutoTimeCellState extends State<PlutoTimeCell>
+class PlutoTimeCellState extends State<PlutoTimeCell>
     with PopupCellState<PlutoTimeCell> {
   PlutoGridStateManager? popupStateManager;
 
@@ -39,13 +39,14 @@ class _PlutoTimeCellState extends State<PlutoTimeCell>
   List<PlutoRow> popupRows = [];
 
   @override
-  Icon? icon = const Icon(
-    Icons.access_time,
-  );
+  IconData? get icon => widget.column.type.time.popupIcon;
 
-  String get cellHour => widget.cell.value.toString().substring(0, 2);
+  String get cellValue =>
+      widget.cell.value ?? widget.column.type.time.defaultValue;
 
-  String get cellMinute => widget.cell.value.toString().substring(3, 5);
+  String get cellHour => cellValue.toString().substring(0, 2);
+
+  String get cellMinute => cellValue.toString().substring(3, 5);
 
   @override
   void openPopup() {
@@ -57,12 +58,32 @@ class _PlutoTimeCellState extends State<PlutoTimeCell>
 
     final localeText = widget.stateManager.localeText;
 
-    final configuration = widget.stateManager.configuration!.copyWith(
-      enableRowColorAnimation: false,
-      enableColumnBorder: false,
-      gridBorderRadius:
-          widget.stateManager.configuration?.gridPopupBorderRadius ??
-              BorderRadius.zero,
+    final style = widget.stateManager.style;
+
+    final configuration = widget.stateManager.configuration.copyWith(
+      tabKeyAction: PlutoGridTabKeyAction.normal,
+      style: style.copyWith(
+        enableColumnBorderVertical: false,
+        enableColumnBorderHorizontal: false,
+        enableCellBorderVertical: false,
+        enableCellBorderHorizontal: false,
+        enableRowColorAnimation: false,
+        oddRowColor: const PlutoOptional(null),
+        evenRowColor: const PlutoOptional(null),
+        activatedColor: style.gridBackgroundColor,
+        gridBorderColor: style.gridBackgroundColor,
+        borderColor: style.gridBackgroundColor,
+        activatedBorderColor: style.gridBackgroundColor,
+        inactivatedBorderColor: style.gridBackgroundColor,
+        rowHeight: style.rowHeight,
+        defaultColumnTitlePadding: PlutoGridSettings.columnTitlePadding,
+        defaultCellPadding: const EdgeInsets.symmetric(horizontal: 3),
+        gridBorderRadius: style.gridPopupBorderRadius,
+      ),
+      columnSize: const PlutoGridColumnSizeConfig(
+        autoSizeMode: PlutoAutoSizeMode.none,
+        resizeMode: PlutoResizeMode.none,
+      ),
     );
 
     PlutoDualGridPopup(
@@ -71,6 +92,8 @@ class _PlutoTimeCellState extends State<PlutoTimeCell>
         isOpenedPopup = false;
 
         if (event.gridA == null || event.gridB == null) {
+          widget.stateManager.setKeepFocus(true);
+          textFocus.requestFocus();
           return;
         }
 
@@ -89,9 +112,11 @@ class _PlutoTimeCellState extends State<PlutoTimeCell>
             enableSorting: false,
             enableColumnDrag: false,
             enableContextMenu: false,
+            enableDropToResize: false,
             textAlign: PlutoColumnTextAlign.center,
             titleTextAlign: PlutoColumnTextAlign.center,
             width: 134,
+            renderer: _cellRenderer,
           ),
         ],
         rows: Iterable<int>.generate(24)
@@ -102,16 +127,21 @@ class _PlutoTimeCellState extends State<PlutoTimeCell>
                 }))
             .toList(growable: false),
         onLoaded: (PlutoGridOnLoadedEvent event) {
-          event.stateManager.setSelectingMode(PlutoGridSelectingMode.none);
+          final stateManager = event.stateManager;
+          final rows = stateManager.refRows;
+          final length = rows.length;
 
-          for (var i = 0; i < event.stateManager.refRows.length; i += 1) {
-            if (event.stateManager.refRows[i].cells['hour']!.value ==
-                cellHour) {
-              event.stateManager.setCurrentCell(
-                  event.stateManager.refRows[i].cells['hour'], i);
+          stateManager.setSelectingMode(PlutoGridSelectingMode.none);
 
-              event.stateManager.moveScrollByRow(
-                  PlutoMoveDirection.up, i + 1 + offsetOfScrollRowIdx);
+          for (var i = 0; i < length; i += 1) {
+            if (rows[i].cells['hour']!.value == cellHour) {
+              stateManager.setCurrentCell(rows[i].cells['hour'], i);
+
+              stateManager.moveScrollByRow(
+                PlutoMoveDirection.up,
+                i + 1 + offsetOfScrollRowIdx,
+              );
+
               return;
             }
           }
@@ -128,9 +158,11 @@ class _PlutoTimeCellState extends State<PlutoTimeCell>
             enableSorting: false,
             enableColumnDrag: false,
             enableContextMenu: false,
+            enableDropToResize: false,
             textAlign: PlutoColumnTextAlign.center,
             titleTextAlign: PlutoColumnTextAlign.center,
             width: 134,
+            renderer: _cellRenderer,
           ),
         ],
         rows: Iterable<int>.generate(60)
@@ -141,16 +173,21 @@ class _PlutoTimeCellState extends State<PlutoTimeCell>
                 }))
             .toList(growable: false),
         onLoaded: (PlutoGridOnLoadedEvent event) {
-          event.stateManager.setSelectingMode(PlutoGridSelectingMode.none);
+          final stateManager = event.stateManager;
+          final rows = stateManager.refRows;
+          final length = rows.length;
 
-          for (var i = 0; i < event.stateManager.refRows.length; i += 1) {
-            if (event.stateManager.refRows[i].cells['minute']!.value ==
-                cellMinute) {
-              event.stateManager.setCurrentCell(
-                  event.stateManager.refRows[i].cells['minute'], i);
+          stateManager.setSelectingMode(PlutoGridSelectingMode.none);
 
-              event.stateManager.moveScrollByRow(
-                  PlutoMoveDirection.up, i + 1 + offsetOfScrollRowIdx);
+          for (var i = 0; i < length; i += 1) {
+            if (rows[i].cells['minute']!.value == cellMinute) {
+              stateManager.setCurrentCell(rows[i].cells['minute'], i);
+
+              stateManager.moveScrollByRow(
+                PlutoMoveDirection.up,
+                i + 1 + offsetOfScrollRowIdx,
+              );
+
               return;
             }
           }
@@ -160,6 +197,47 @@ class _PlutoTimeCellState extends State<PlutoTimeCell>
       mode: PlutoGridMode.select,
       width: 276,
       height: 300,
+      divider: const PlutoDualGridDivider(
+        show: false,
+      ),
+    );
+  }
+
+  Widget _cellRenderer(PlutoColumnRendererContext renderContext) {
+    final cell = renderContext.cell;
+
+    final isCurrentCell = renderContext.stateManager.isCurrentCell(cell);
+
+    final cellColor = isCurrentCell && renderContext.stateManager.hasFocus
+        ? widget.stateManager.style.activatedBorderColor
+        : widget.stateManager.style.gridBackgroundColor;
+
+    final textColor = isCurrentCell && renderContext.stateManager.hasFocus
+        ? widget.stateManager.style.gridBackgroundColor
+        : widget.stateManager.style.cellTextStyle.color;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: cellColor,
+        shape: BoxShape.circle,
+        border: !isCurrentCell
+            ? null
+            : !renderContext.stateManager.hasFocus
+                ? Border.all(
+                    color: widget.stateManager.style.activatedBorderColor,
+                    width: 1,
+                  )
+                : null,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(5),
+        child: Center(
+          child: Text(
+            cell.value,
+            style: TextStyle(color: textColor),
+          ),
+        ),
+      ),
     );
   }
 }

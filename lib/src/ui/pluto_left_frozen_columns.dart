@@ -2,91 +2,102 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 
+import 'ui.dart';
+
 class PlutoLeftFrozenColumns extends PlutoStatefulWidget {
-  @override
   final PlutoGridStateManager stateManager;
 
   const PlutoLeftFrozenColumns(
     this.stateManager, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
-  _PlutoLeftFrozenColumnsState createState() => _PlutoLeftFrozenColumnsState();
+  PlutoLeftFrozenColumnsState createState() => PlutoLeftFrozenColumnsState();
 }
 
-abstract class _PlutoLeftFrozenColumnsStateWithChange
+class PlutoLeftFrozenColumnsState
     extends PlutoStateWithChange<PlutoLeftFrozenColumns> {
-  bool? _showColumnGroups;
+  List<PlutoColumn> _columns = [];
 
-  List<PlutoColumn>? _columns;
+  List<PlutoColumnGroupPair> _columnGroups = [];
 
-  List<PlutoColumnGroupPair>? _columnGroups;
+  bool _showColumnGroups = false;
 
-  int? _itemCount;
-
-  double? _width;
+  int _itemCount = 0;
 
   @override
-  void onChange() {
-    resetState((update) {
-      _showColumnGroups = update<bool?>(
-        _showColumnGroups,
-        widget.stateManager.showColumnGroups,
-      );
+  PlutoGridStateManager get stateManager => widget.stateManager;
 
-      _columns = update<List<PlutoColumn>?>(
-        _columns,
-        widget.stateManager.leftFrozenColumns,
-        compare: listEquals,
-      );
+  @override
+  void initState() {
+    super.initState();
 
-      if (changed && _showColumnGroups == true) {
-        _columnGroups = widget.stateManager.separateLinkedGroup(
-          columnGroupList: widget.stateManager.refColumnGroups!,
-          columns: _columns!,
-        );
-      }
+    updateState(PlutoNotifierEventForceUpdate.instance);
+  }
 
-      _itemCount = update<int?>(_itemCount, _getItemCount());
+  @override
+  void updateState(PlutoNotifierEvent event) {
+    _showColumnGroups = update<bool>(
+      _showColumnGroups,
+      stateManager.showColumnGroups,
+    );
 
-      _width = update<double?>(
-        _width,
-        widget.stateManager.leftFrozenColumnsWidth,
-      );
-    });
+    _columns = update<List<PlutoColumn>>(
+      _columns,
+      stateManager.leftFrozenColumns,
+      compare: listEquals,
+    );
+
+    _columnGroups = update<List<PlutoColumnGroupPair>>(
+      _columnGroups,
+      stateManager.separateLinkedGroup(
+        columnGroupList: stateManager.refColumnGroups,
+        columns: _columns,
+      ),
+    );
+
+    _itemCount = update<int>(_itemCount, _getItemCount());
   }
 
   int _getItemCount() {
-    return _showColumnGroups == true ? _columnGroups!.length : _columns!.length;
+    return _showColumnGroups == true ? _columnGroups.length : _columns.length;
   }
-}
 
-class _PlutoLeftFrozenColumnsState
-    extends _PlutoLeftFrozenColumnsStateWithChange {
+  Widget _makeColumnGroup(PlutoColumnGroupPair e) {
+    return LayoutId(
+      id: e.key,
+      child: PlutoBaseColumnGroup(
+        stateManager: stateManager,
+        columnGroup: e,
+        depth: stateManager.columnGroupDepth(stateManager.refColumnGroups),
+      ),
+    );
+  }
+
+  Widget _makeColumn(PlutoColumn e) {
+    return LayoutId(
+      id: e.field,
+      child: PlutoBaseColumn(
+        stateManager: stateManager,
+        column: e,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: _width,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: _itemCount,
-        itemBuilder: (ctx, i) {
-          return _showColumnGroups == true
-              ? PlutoBaseColumnGroup(
-                  stateManager: widget.stateManager,
-                  columnGroup: _columnGroups![i],
-                  depth: widget.stateManager.columnGroupDepth(
-                    widget.stateManager.refColumnGroups!,
-                  ),
-                )
-              : PlutoBaseColumn(
-                  stateManager: widget.stateManager,
-                  column: _columns![i],
-                );
-        },
+    return CustomMultiChildLayout(
+      delegate: MainColumnLayoutDelegate(
+        stateManager: stateManager,
+        columns: _columns,
+        columnGroups: _columnGroups,
+        frozen: PlutoColumnFrozen.start,
+        textDirection: stateManager.textDirection,
       ),
+      children: _showColumnGroups == true
+          ? _columnGroups.map(_makeColumnGroup).toList(growable: false)
+          : _columns.map(_makeColumn).toList(growable: false),
     );
   }
 }

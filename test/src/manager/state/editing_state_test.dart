@@ -5,9 +5,39 @@ import 'package:pluto_grid/pluto_grid.dart';
 
 import '../../../helper/column_helper.dart';
 import '../../../helper/row_helper.dart';
-import '../../../mock/mock_on_change_listener.dart';
+import '../../../mock/mock_methods.dart';
+import '../../../mock/shared_mocks.mocks.dart';
 
 void main() {
+  PlutoGridStateManager createStateManager({
+    required List<PlutoColumn> columns,
+    required List<PlutoRow> rows,
+    FocusNode? gridFocusNode,
+    PlutoGridScrollController? scroll,
+    BoxConstraints? layout,
+    PlutoGridConfiguration configuration = const PlutoGridConfiguration(),
+    PlutoGridMode? mode,
+    void Function(PlutoGridOnChangedEvent)? onChangedEventCallback,
+  }) {
+    final stateManager = PlutoGridStateManager(
+      columns: columns,
+      rows: rows,
+      gridFocusNode: gridFocusNode ?? MockFocusNode(),
+      scroll: scroll ?? MockPlutoGridScrollController(),
+      configuration: configuration,
+      mode: mode,
+      onChanged: onChangedEventCallback,
+    );
+
+    stateManager.setEventManager(MockPlutoGridEventManager());
+
+    if (layout != null) {
+      stateManager.setLayout(layout);
+    }
+
+    return stateManager;
+  }
+
   group('pasteCellValue', () {
     testWidgets(
         'WHEN'
@@ -20,27 +50,25 @@ void main() {
       // given
       List<PlutoColumn> columns = [
         ...ColumnHelper.textColumn('left',
-            count: 3, frozen: PlutoColumnFrozen.left),
+            count: 3, frozen: PlutoColumnFrozen.start),
         ...ColumnHelper.textColumn('body', count: 3, width: 150),
         ...ColumnHelper.textColumn('right',
-            count: 3, frozen: PlutoColumnFrozen.right),
+            count: 3, frozen: PlutoColumnFrozen.end),
       ];
 
       List<PlutoRow> rows = RowHelper.count(10, columns);
 
       PlutoGridStateManager.initializeRows(columns, rows);
 
-      PlutoGridStateManager stateManager = PlutoGridStateManager(
+      PlutoGridStateManager stateManager = createStateManager(
         columns: columns,
         rows: rows,
         gridFocusNode: null,
         scroll: null,
+        layout: const BoxConstraints(maxHeight: 300, maxWidth: 50),
       );
 
       stateManager.setSelectingMode(PlutoGridSelectingMode.row);
-
-      stateManager
-          .setLayout(const BoxConstraints(maxHeight: 300, maxWidth: 50));
 
       final currentCell = rows[2].cells['body2'];
 
@@ -85,25 +113,23 @@ void main() {
       // given
       List<PlutoColumn> columns = [
         ...ColumnHelper.textColumn('left',
-            count: 3, frozen: PlutoColumnFrozen.left),
+            count: 3, frozen: PlutoColumnFrozen.start),
         ...ColumnHelper.textColumn('body', count: 3, width: 150),
         ...ColumnHelper.textColumn('right',
-            count: 3, frozen: PlutoColumnFrozen.right),
+            count: 3, frozen: PlutoColumnFrozen.end),
       ];
 
       List<PlutoRow> rows = RowHelper.count(10, columns);
 
-      PlutoGridStateManager stateManager = PlutoGridStateManager(
+      PlutoGridStateManager stateManager = createStateManager(
         columns: columns,
         rows: rows,
         gridFocusNode: null,
         scroll: null,
+        layout: const BoxConstraints(maxHeight: 300, maxWidth: 50),
       );
 
       stateManager.setSelectingMode(PlutoGridSelectingMode.row);
-
-      stateManager
-          .setLayout(const BoxConstraints(maxHeight: 300, maxWidth: 50));
 
       final currentCell = rows[2].cells['body2'];
 
@@ -162,32 +188,30 @@ void main() {
       // given
       List<PlutoColumn> columns = [
         ...ColumnHelper.textColumn('left',
-            count: 3, frozen: PlutoColumnFrozen.left),
+            count: 3, frozen: PlutoColumnFrozen.start),
         ...ColumnHelper.textColumn('body', count: 3, width: 150),
         ...ColumnHelper.textColumn('right',
-            count: 3, frozen: PlutoColumnFrozen.right),
+            count: 3, frozen: PlutoColumnFrozen.end),
       ];
 
       List<PlutoRow> rows = RowHelper.count(10, columns);
 
-      PlutoGridStateManager stateManager = PlutoGridStateManager(
+      PlutoGridStateManager stateManager = createStateManager(
         columns: columns,
         rows: rows,
         gridFocusNode: null,
         scroll: null,
+        layout: const BoxConstraints(maxHeight: 300, maxWidth: 50),
       );
 
       stateManager.setSelectingMode(PlutoGridSelectingMode.cell);
-
-      stateManager
-          .setLayout(const BoxConstraints(maxHeight: 300, maxWidth: 50));
 
       final currentCell = rows[2].cells['body2'];
 
       stateManager.setCurrentCell(currentCell, 2);
 
       stateManager.setCurrentSelectingPosition(
-        cellPosition: PlutoGridCellPosition(
+        cellPosition: const PlutoGridCellPosition(
           columnIdx: 6,
           rowIdx: 4,
         ),
@@ -248,7 +272,7 @@ void main() {
   });
 
   group('setEditing', () {
-    MockOnChangeListener? mock;
+    MockMethods? mock;
     List<PlutoColumn> columns;
     List<PlutoRow> rows;
     late PlutoGridStateManager stateManager;
@@ -267,7 +291,7 @@ void main() {
         setCurrentCell = false,
         setIsEditing = false,
       }) {
-        mock = MockOnChangeListener();
+        mock = MockMethods();
 
         columns = [
           PlutoColumn(
@@ -280,18 +304,16 @@ void main() {
 
         rows = RowHelper.count(10, columns);
 
-        stateManager = PlutoGridStateManager(
+        stateManager = createStateManager(
           columns: columns,
           rows: rows,
           gridFocusNode: null,
           scroll: null,
           mode: mode,
+          layout: const BoxConstraints(maxHeight: 300, maxWidth: 50),
         );
 
-        stateManager.addListener(mock!.onChangeVoidNoParamListener);
-
-        stateManager
-            .setLayout(const BoxConstraints(maxHeight: 300, maxWidth: 50));
+        stateManager.addListener(mock!.noParamReturnVoid);
 
         if (setCurrentCell!) {
           stateManager.setCurrentCell(rows.first.cells['column'], 0);
@@ -324,7 +346,7 @@ void main() {
         stateManager.setEditing(true);
 
         // then
-        verifyNever(mock!.onChangeVoidNoParamListener());
+        verifyNever(mock!.noParamReturnVoid());
       },
     );
 
@@ -347,7 +369,7 @@ void main() {
         stateManager.setEditing(true);
 
         // then
-        verify(mock!.onChangeVoidNoParamListener()).called(1);
+        verify(mock!.noParamReturnVoid()).called(1);
       },
     );
 
@@ -370,7 +392,7 @@ void main() {
         stateManager.setEditing(true);
 
         // then
-        verifyNever(mock!.onChangeVoidNoParamListener());
+        verifyNever(mock!.noParamReturnVoid());
       },
     );
 
@@ -393,7 +415,7 @@ void main() {
         stateManager.setEditing(true);
 
         // then
-        verifyNever(mock!.onChangeVoidNoParamListener());
+        verifyNever(mock!.noParamReturnVoid());
       },
     );
   });
@@ -409,19 +431,26 @@ void main() {
       'force 가 false(기본값) 일 때, canNotChangeCellValue 가 true 면'
       'onChanged 콜백이 호출 되지 않아야 한다.',
       () {
-        final mock = MockOnChangeListener();
+        final mock = MockMethods();
 
-        PlutoGridStateManager stateManager = PlutoGridStateManager(
+        PlutoGridStateManager stateManager = createStateManager(
           columns: columns,
           rows: rows,
           gridFocusNode: null,
           scroll: null,
           mode: PlutoGridMode.select,
-          onChangedEventCallback: mock.onChangeOneParamListener,
+          onChangedEventCallback: mock.oneParamReturnVoid,
         );
 
+        final cell = PlutoCell(value: '');
+        final column = columns.first;
+        final row = PlutoRow(cells: {columns.first.field: cell});
+        cell
+          ..setColumn(column)
+          ..setRow(row);
+
         final bool canNotChangeCellValue = stateManager.canNotChangeCellValue(
-          column: columns.first,
+          cell: cell,
           newValue: 'abc',
           oldValue: 'ABC',
         );
@@ -434,7 +463,7 @@ void main() {
           // force: false,
         );
 
-        verifyNever(mock.onChangeOneParamListener(any));
+        verifyNever(mock.oneParamReturnVoid(any));
       },
     );
 
@@ -442,24 +471,27 @@ void main() {
       'force 가 true 일 때, canNotChangeCellValue 가 true 라도'
       'onChanged 콜백이 호출 되어야 한다.',
       () {
-        final mock = MockOnChangeListener();
+        final mock = MockMethods();
 
-        PlutoGridStateManager stateManager = PlutoGridStateManager(
+        PlutoGridStateManager stateManager = createStateManager(
           columns: columns,
           rows: rows,
           gridFocusNode: null,
           scroll: null,
           mode: PlutoGridMode.select,
-          onChangedEventCallback: mock.onChangeOneParamListener,
+          onChangedEventCallback: mock.oneParamReturnVoid,
+          layout: const BoxConstraints(maxHeight: 300, maxWidth: 50),
         );
 
-        stateManager
-            .setLayout(const BoxConstraints(maxHeight: 300, maxWidth: 50));
-
-        stateManager.resetShowFrozenColumn(notify: false);
+        final cell = PlutoCell(value: '');
+        final column = columns.first;
+        final row = PlutoRow(cells: {columns.first.field: cell});
+        cell
+          ..setColumn(column)
+          ..setRow(row);
 
         final bool canNotChangeCellValue = stateManager.canNotChangeCellValue(
-          column: columns.first,
+          cell: cell,
           newValue: 'abc',
           oldValue: 'ABC',
         );
@@ -472,7 +504,7 @@ void main() {
           force: true,
         );
 
-        verify(mock.onChangeOneParamListener(any)).called(1);
+        verify(mock.oneParamReturnVoid(any)).called(1);
       },
     );
   });

@@ -1,32 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:pluto_grid/pluto_grid.dart';
+import 'package:pluto_grid/src/ui/ui.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../../helper/column_helper.dart';
 import '../../helper/pluto_widget_test_helper.dart';
-import 'pluto_base_column_group_test.mocks.dart';
+import '../../mock/shared_mocks.mocks.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<PlutoGridStateManager>(returnNullOnMissingStub: true),
-])
 void main() {
   MockPlutoGridStateManager? stateManager;
 
+  late PublishSubject<PlutoNotifierEvent> subject;
+
   const columnHeight = PlutoGridSettings.rowHeight;
+
+  final resizingNotifier = ChangeNotifier();
 
   setUp(() {
     stateManager = MockPlutoGridStateManager();
-    when(stateManager!.configuration).thenReturn(
-      const PlutoGridConfiguration(),
-    );
+
+    subject = PublishSubject<PlutoNotifierEvent>();
+
+    const configuration = PlutoGridConfiguration();
+
+    when(stateManager!.configuration).thenReturn(configuration);
+
+    when(stateManager!.style).thenReturn(configuration.style);
+
+    when(stateManager!.streamNotifier).thenAnswer((_) => subject);
+
+    when(stateManager!.resizingChangeNotifier).thenReturn(resizingNotifier);
+
+    when(stateManager!.showFrozenColumn).thenReturn(false);
+
+    when(stateManager!.textDirection).thenReturn(TextDirection.ltr);
+
+    when(stateManager!.isRTL).thenReturn(false);
+
     when(stateManager!.columnGroupDepth(any)).thenAnswer((realInvocation) {
       return PlutoColumnGroupHelper.maxDepth(
         columnGroupList:
             realInvocation.positionalArguments[0] as List<PlutoColumnGroup>,
       );
     });
+
     when(
       stateManager!.separateLinkedGroup(
         columnGroupList: anyNamed('columnGroupList'),
@@ -45,6 +64,10 @@ void main() {
     );
   });
 
+  tearDown(() {
+    subject.close();
+  });
+
   buildWidget({
     required PlutoColumnGroupPair columnGroup,
     required int depth,
@@ -55,11 +78,15 @@ void main() {
       when(stateManager!.columnHeight).thenReturn(columnHeight);
       when(stateManager!.showColumnFilter).thenReturn(showColumnFilter);
       when(stateManager!.isFilteredColumn(any)).thenReturn(isFilteredColumn);
+      when(stateManager!.columnFilterHeight).thenReturn(columnHeight);
+      when(stateManager!.rowHeight).thenReturn(45);
 
       await tester.pumpWidget(
         MaterialApp(
           home: Material(
-            child: FittedBox(
+            child: SizedBox(
+              width: 1920,
+              height: 1080,
               child: PlutoBaseColumnGroup(
                 stateManager: stateManager!,
                 columnGroup: columnGroup,
@@ -163,11 +190,11 @@ void main() {
       final groupTitle = find.text('column group title');
 
       final groupTitleWidget = find
-          .ancestor(of: groupTitle, matching: find.byType(Container))
+          .ancestor(of: groupTitle, matching: find.byType(SizedBox))
           .first
           .evaluate()
           .first
-          .widget as Container;
+          .widget as SizedBox;
 
       final columnTitle = find.text('column1');
 
@@ -175,7 +202,7 @@ void main() {
 
       expect(columnTitle, findsOneWidget);
 
-      expect(groupTitleWidget.constraints?.maxHeight, columnHeight * 3);
+      expect(groupTitleWidget.height, columnHeight * 3);
     },
   );
 

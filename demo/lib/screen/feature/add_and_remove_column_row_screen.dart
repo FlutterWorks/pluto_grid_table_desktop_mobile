@@ -65,7 +65,7 @@ class _AddAndRemoveColumnRowScreenState
           'created',
         ]),
         enableEditingMode: false,
-        frozen: PlutoColumnFrozen.right,
+        frozen: PlutoColumnFrozen.end,
         titleSpan: const TextSpan(children: [
           WidgetSpan(
               child: Icon(
@@ -149,8 +149,8 @@ class _AddAndRemoveColumnRowScreenState
         onChanged: (PlutoGridOnChangedEvent event) {
           print(event);
 
-          if (event.row!.cells['status']!.value == 'saved') {
-            event.row!.cells['status']!.value = 'edited';
+          if (event.row.cells['status']!.value == 'saved') {
+            event.row.cells['status']!.value = 'edited';
           }
 
           stateManager.notifyListeners();
@@ -189,7 +189,9 @@ class _HeaderState extends State<_Header> {
   void initState() {
     super.initState();
 
-    widget.stateManager.setSelectingMode(gridSelectingMode);
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      widget.stateManager.setSelectingMode(gridSelectingMode);
+    });
   }
 
   void handleAddColumns() {
@@ -322,37 +324,37 @@ class _HeaderState extends State<_Header> {
               ),
             ),
             ElevatedButton(
-              child: const Text('Add columns'),
               onPressed: handleAddColumns,
+              child: const Text('Add columns'),
             ),
             ElevatedButton(
-              child: const Text('Add rows'),
               onPressed: handleAddRows,
+              child: const Text('Add rows'),
             ),
             ElevatedButton(
-              child: const Text('Save all'),
               onPressed: handleSaveAll,
+              child: const Text('Save all'),
             ),
             ElevatedButton(
-              child: const Text('Remove Current Column'),
               onPressed: handleRemoveCurrentColumnButton,
+              child: const Text('Remove Current Column'),
             ),
             ElevatedButton(
-              child: const Text('Remove Current Row'),
               onPressed: handleRemoveCurrentRowButton,
+              child: const Text('Remove Current Row'),
             ),
             ElevatedButton(
-              child: const Text('Remove Selected Rows'),
               onPressed: handleRemoveSelectedRowsButton,
+              child: const Text('Remove Selected Rows'),
             ),
             ElevatedButton(
-              child: const Text('Toggle filtering'),
               onPressed: handleFiltering,
+              child: const Text('Toggle filtering'),
             ),
             DropdownButtonHideUnderline(
               child: DropdownButton(
                 value: gridSelectingMode,
-                items: PlutoGridStateManager.selectingModes
+                items: PlutoGridSelectingMode.values
                     .map<DropdownMenuItem<PlutoGridSelectingMode>>(
                         (PlutoGridSelectingMode item) {
                   final color = gridSelectingMode == item ? Colors.blue : null;
@@ -360,7 +362,7 @@ class _HeaderState extends State<_Header> {
                   return DropdownMenuItem<PlutoGridSelectingMode>(
                     value: item,
                     child: Text(
-                      item.toShortString(),
+                      item.name,
                       style: TextStyle(color: color),
                     ),
                   );

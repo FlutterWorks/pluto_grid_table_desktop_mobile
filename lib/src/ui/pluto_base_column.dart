@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 
-class PlutoBaseColumn extends PlutoStatefulWidget {
-  @override
+import 'ui.dart';
+
+class PlutoBaseColumn extends PlutoStatefulWidget
+    implements PlutoVisibilityLayoutChild {
   final PlutoGridStateManager stateManager;
 
   final PlutoColumn column;
@@ -16,38 +18,64 @@ class PlutoBaseColumn extends PlutoStatefulWidget {
   }) : super(key: column.key);
 
   @override
-  _PlutoBaseColumnState createState() => _PlutoBaseColumnState();
-}
-
-abstract class _PlutoBaseColumnStateWithChange
-    extends PlutoStateWithChange<PlutoBaseColumn> {
-  bool? _showColumnFilter;
+  PlutoBaseColumnState createState() => PlutoBaseColumnState();
 
   @override
-  void onChange() {
-    resetState((update) {
-      _showColumnFilter = update<bool?>(
-        _showColumnFilter,
-        widget.stateManager.showColumnFilter,
-      );
-    });
-  }
+  double get width => column.width;
+
+  @override
+  double get startPosition => column.startPosition;
+
+  @override
+  bool get keepAlive => false;
 }
 
-class _PlutoBaseColumnState extends _PlutoBaseColumnStateWithChange {
+class PlutoBaseColumnState extends PlutoStateWithChange<PlutoBaseColumn> {
+  bool _showColumnFilter = false;
+
+  @override
+  PlutoGridStateManager get stateManager => widget.stateManager;
+
+  @override
+  void initState() {
+    super.initState();
+
+    updateState(PlutoNotifierEventForceUpdate.instance);
+  }
+
+  @override
+  void updateState(PlutoNotifierEvent event) {
+    _showColumnFilter = update<bool>(
+      _showColumnFilter,
+      stateManager.showColumnFilter,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Stack(
+      fit: StackFit.expand,
       children: [
-        PlutoColumnTitle(
-          stateManager: widget.stateManager,
-          column: widget.column,
-          height: widget.columnTitleHeight ?? widget.stateManager.columnHeight,
-        ),
-        if (_showColumnFilter!)
-          PlutoColumnFilter(
-            stateManager: widget.stateManager,
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: _showColumnFilter ? stateManager.columnFilterHeight : 0,
+          child: PlutoColumnTitle(
+            stateManager: stateManager,
             column: widget.column,
+            height: widget.columnTitleHeight ?? stateManager.columnHeight,
+          ),
+        ),
+        if (_showColumnFilter)
+          Positioned(
+            bottom: 0,
+            right: 0,
+            left: 0,
+            child: PlutoColumnFilter(
+              stateManager: stateManager,
+              column: widget.column,
+            ),
           ),
       ],
     );

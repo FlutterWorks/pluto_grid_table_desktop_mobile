@@ -9,30 +9,40 @@ import '../widget/pluto_grid_title.dart';
 import '../widget/pluto_list_tile.dart';
 import '../widget/pluto_section.dart';
 import '../widget/pluto_text_color_animation.dart';
+import 'development_screen.dart';
 import 'feature/add_and_remove_column_row_screen.dart';
+import 'feature/add_rows_asynchronously.dart';
 import 'feature/cell_renderer_screen.dart';
 import 'feature/cell_selection_screen.dart';
 import 'feature/column_filtering_screen.dart';
+import 'feature/column_footer_screen.dart';
 import 'feature/column_freezing_screen.dart';
 import 'feature/column_group_screen.dart';
 import 'feature/column_hiding_screen.dart';
+import 'feature/column_menu_screen.dart';
 import 'feature/column_moving_screen.dart';
 import 'feature/column_resizing_screen.dart';
 import 'feature/column_sorting_screen.dart';
 import 'feature/copy_and_paste_screen.dart';
+import 'feature/currency_type_column_screen.dart';
 import 'feature/dark_mode_screen.dart';
 import 'feature/date_type_column_screen.dart';
 import 'feature/dual_mode_screen.dart';
 import 'feature/editing_state_screen.dart';
+import 'feature/export_screen.dart';
 import 'feature/grid_as_popup_screen.dart';
 import 'feature/listing_mode_screen.dart';
 import 'feature/moving_screen.dart';
 import 'feature/number_type_column_screen.dart';
 import 'feature/row_color_screen.dart';
+import 'feature/row_group_screen.dart';
+import 'feature/row_infinity_scroll_screen.dart';
+import 'feature/row_lazy_pagination_screen.dart';
 import 'feature/row_moving_screen.dart';
 import 'feature/row_pagination_screen.dart';
 import 'feature/row_selection_screen.dart';
 import 'feature/row_with_checkbox_screen.dart';
+import 'feature/rtl_screen.dart';
 import 'feature/selection_type_column_screen.dart';
 import 'feature/text_type_column_screen.dart';
 import 'feature/time_type_column_screen.dart';
@@ -46,134 +56,137 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: LayoutBuilder(
-        builder: (ctx, size) {
-          return Stack(
-            children: [
-              Positioned.fill(
-                top: 0,
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0xFF2E4370),
-                        Color(0xFF33C1E8),
-                      ],
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (ctx, size) {
+            return Stack(
+              children: [
+                Positioned.fill(
+                  top: 0,
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color(0xFF2E4370),
+                          Color(0xFF33C1E8),
+                        ],
+                      ),
                     ),
-                  ),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            30,
-                            100,
-                            30,
-                            0,
-                          ),
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: PlutoGridTitle(
-                              fontSize: max(size.maxWidth / 20, 38),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              30,
+                              100,
+                              30,
+                              0,
                             ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 30,
-                          ),
-                          child: const PlutoTextColorAnimation(
-                            text: 'The DataGrid for Flutter.',
-                            fontSize: 20,
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 50,
-                        ),
-                        Center(
-                          child: Column(
-                            children: [
-                              IconButton(
-                                icon: const FaIcon(FontAwesomeIcons.link),
-                                color: Colors.white,
-                                onPressed: () {
-                                  launchUrl(
-                                      'https://pub.dev/packages/pluto_grid');
-                                },
-                              ),
-                              const Text(
-                                'pub.dev',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const PlutoSection(
-                          title: 'Features',
-                          fontColor: Colors.white,
-                          child: PlutoFeatures(),
-                          // color: Colors.white,
-                        ),
-                        const PlutoSection(
-                          title: 'Contributors',
-                          fontColor: Colors.white,
-                          child: PlutoContributors(),
-                        ),
-                        const SizedBox(
-                          height: 50,
-                        ),
-                        Center(
-                          child: Column(
-                            children: [
-                              IconButton(
-                                icon: const FaIcon(FontAwesomeIcons.github),
-                                color: Colors.white,
-                                onPressed: () {
-                                  launchUrl(
-                                      'https://github.com/bosskmk/pluto_grid');
-                                },
-                              ),
-                              const Text(
-                                'Github',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 50,
-                        ),
-                        Center(
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: GestureDetector(
-                              onTap: () {
-                                launchUrl('https://www.buymeacoffee.com/manki');
-                              },
-                              child: Image.asset(
-                                'assets/images/buy_me_a_coffee.png',
-                                height: 60,
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: PlutoGridTitle(
+                                fontSize: max(size.maxWidth / 20, 38),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(
-                          height: 100,
-                        ),
-                      ],
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 30,
+                            ),
+                            child: const PlutoTextColorAnimation(
+                              text: 'The DataGrid for Flutter.',
+                              fontSize: 20,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 50,
+                          ),
+                          Center(
+                            child: Column(
+                              children: [
+                                IconButton(
+                                  icon: const FaIcon(FontAwesomeIcons.link),
+                                  color: Colors.white,
+                                  onPressed: () {
+                                    launchUrl(
+                                        'https://pub.dev/packages/pluto_grid');
+                                  },
+                                ),
+                                const Text(
+                                  'pub.dev',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const PlutoSection(
+                            title: 'Features',
+                            fontColor: Colors.white,
+                            child: PlutoFeatures(),
+                            // color: Colors.white,
+                          ),
+                          const PlutoSection(
+                            title: 'Contributors',
+                            fontColor: Colors.white,
+                            child: PlutoContributors(),
+                          ),
+                          const SizedBox(
+                            height: 50,
+                          ),
+                          Center(
+                            child: Column(
+                              children: [
+                                IconButton(
+                                  icon: const FaIcon(FontAwesomeIcons.github),
+                                  color: Colors.white,
+                                  onPressed: () {
+                                    launchUrl(
+                                        'https://github.com/bosskmk/pluto_grid');
+                                  },
+                                ),
+                                const Text(
+                                  'Github',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 50,
+                          ),
+                          Center(
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: () {
+                                  launchUrl(
+                                      'https://www.buymeacoffee.com/manki');
+                                },
+                                child: Image.asset(
+                                  'assets/images/buy_me_a_coffee.png',
+                                  height: 60,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 100,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -220,7 +233,6 @@ class PlutoFeatures extends StatelessWidget {
             onTapLiveDemo: () {
               Navigator.pushNamed(context, ColumnGroupScreen.routeName);
             },
-            trailing: newIcon,
           ),
           PlutoListTile(
             title: 'Column resizing',
@@ -253,6 +265,22 @@ class PlutoFeatures extends StatelessWidget {
             },
           ),
           PlutoListTile(
+            title: 'Column menu',
+            description: 'Customize the menu on the right side of the column.',
+            onTapLiveDemo: () {
+              Navigator.pushNamed(context, ColumnMenuScreen.routeName);
+            },
+          ),
+          PlutoListTile(
+            title: 'Column footer',
+            description:
+                'Display each column fixed at the bottom. (For outputting data sum, average, etc.)',
+            onTapLiveDemo: () {
+              Navigator.pushNamed(context, ColumnFooterScreen.routeName);
+            },
+            trailing: newIcon,
+          ),
+          PlutoListTile(
             title: 'Text type column',
             description: 'A column to enter a character value.',
             onTapLiveDemo: () {
@@ -265,6 +293,14 @@ class PlutoFeatures extends StatelessWidget {
             onTapLiveDemo: () {
               Navigator.pushNamed(context, NumberTypeColumnScreen.routeName);
             },
+          ),
+          PlutoListTile(
+            title: 'Currency type column',
+            description: 'A column to enter a number as currency value.',
+            onTapLiveDemo: () {
+              Navigator.pushNamed(context, CurrencyTypeColumnScreen.routeName);
+            },
+            trailing: newIcon,
           ),
           PlutoListTile(
             title: 'Date type column',
@@ -300,7 +336,6 @@ class PlutoFeatures extends StatelessWidget {
             onTapLiveDemo: () {
               Navigator.pushNamed(context, RowColorScreen.routeName);
             },
-            trailing: newIcon,
           ),
           PlutoListTile(
             title: 'Row selection',
@@ -323,13 +358,46 @@ class PlutoFeatures extends StatelessWidget {
             onTapLiveDemo: () {
               Navigator.pushNamed(context, RowPaginationScreen.routeName);
             },
+          ),
+          PlutoListTile(
+            title: 'Row lazy pagination',
+            description:
+                'Implement pagination in the form of fetching data from the server.',
+            onTapLiveDemo: () {
+              Navigator.pushNamed(context, RowLazyPaginationScreen.routeName);
+            },
             trailing: newIcon,
+          ),
+          PlutoListTile(
+            title: 'Row infinity scroll',
+            description: 'Add a new row when scrolling reaches the bottom end.',
+            onTapLiveDemo: () {
+              Navigator.pushNamed(context, RowInfinityScrollScreen.routeName);
+            },
+            trailing: newIcon,
+          ),
+          PlutoListTile(
+            title: 'Row group',
+            description: 'Grouping rows in a column or tree structure.',
+            onTapLiveDemo: () {
+              Navigator.pushNamed(context, RowGroupScreen.routeName);
+            },
           ),
           PlutoListTile(
             title: 'Row with checkbox',
             description: 'You can select rows with checkbox.',
             onTapLiveDemo: () {
               Navigator.pushNamed(context, RowWithCheckboxScreen.routeName);
+            },
+          ),
+          PlutoListTile(
+            title: 'Add rows asynchronously',
+            description: 'Adds or sets rows asynchronously.',
+            onTapLiveDemo: () {
+              Navigator.pushNamed(
+                context,
+                AddRowsAsynchronouslyScreen.routeName,
+              );
             },
           ),
           PlutoListTile(
@@ -372,13 +440,19 @@ class PlutoFeatures extends StatelessWidget {
             },
           ),
           PlutoListTile(
+            title: 'RTL - TextDirection.',
+            description: 'Activate Right-To-Left which is a TextDirection.',
+            onTapLiveDemo: () {
+              Navigator.pushNamed(context, RTLScreen.routeName);
+            },
+          ),
+          PlutoListTile(
             title: 'Add and Remove Columns, Rows',
             description: 'You can add or delete columns, rows.',
             onTapLiveDemo: () {
               Navigator.pushNamed(
                   context, AddAndRemoveColumnRowScreen.routeName);
             },
-            trailing: updateIcon,
           ),
           PlutoListTile(
             title: 'Dual mode',
@@ -403,11 +477,26 @@ class PlutoFeatures extends StatelessWidget {
               Navigator.pushNamed(context, ListingModeScreen.routeName);
             },
           ),
+          PlutoListTile(
+            title: 'Export',
+            description: 'Exporting grid data as CSV.',
+            onTapLiveDemo: () {
+              Navigator.pushNamed(context, ExportScreen.routeName);
+            },
+          ),
           PlutoListTile.dark(
             title: 'Dark mode',
             description: 'Change the entire theme of the grid to Dark.',
             onTapLiveDemo: () {
               Navigator.pushNamed(context, DarkModeScreen.routeName);
+            },
+          ),
+          PlutoListTile.amber(
+            title: 'Development',
+            description:
+                'This screen is used during development, and various functions can be tested.',
+            onTapLiveDemo: () {
+              Navigator.pushNamed(context, DevelopmentScreen.routeName);
             },
           ),
         ],
@@ -434,31 +523,17 @@ class PlutoContributors extends StatelessWidget {
             },
           ),
           PlutoContributorTile(
-            name: 'Alexey Volkov',
+            name: 'Gian',
             linkTitle: 'Github',
             onTapLink: () {
-              launchUrl('https://github.com/ASGAlex');
+              launchUrl('https://github.com/Macacoazul01');
             },
           ),
           PlutoContributorTile(
-            name: 'MrCasCode',
+            name: 'Enrique Cardona',
             linkTitle: 'Github',
             onTapLink: () {
-              launchUrl('https://github.com/MrCasCode');
-            },
-          ),
-          PlutoContributorTile(
-            name: 'Wang Chuanbin',
-            linkTitle: 'Github',
-            onTapLink: () {
-              launchUrl('https://github.com/Chuanbin-Wang');
-            },
-          ),
-          PlutoContributorTile(
-            name: 'sheentim',
-            linkTitle: 'Github',
-            onTapLink: () {
-              launchUrl('https://github.com/sheentim');
+              launchUrl('https://github.com/henry2man');
             },
           ),
           PlutoContributorTile(
@@ -469,10 +544,157 @@ class PlutoContributors extends StatelessWidget {
             },
           ),
           PlutoContributorTile(
-            name: 'Enrique Cardona',
+            name: 'Wang Chuanbin',
             linkTitle: 'Github',
             onTapLink: () {
-              launchUrl('https://github.com/henry2man');
+              launchUrl('https://github.com/Chuanbin-Wang');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'HasanCihatS',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/HasanCihatS');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'Majed DH',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/MajedDH');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'Matěj Žídek',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/mzdm');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'Henrique Deodato',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/h3nr1ke');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'tilongzs',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/tilongzs');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'Alexey Volkov',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/ASGAlex');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'Dmitry Sboychakov',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/DmitrySboychakov');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'MrCasCode',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/MrCasCode');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'hos3ein',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/hos3ein');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'Hu-Wentao',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/Hu-Wentao');
+            },
+          ),
+          PlutoContributorTile(
+            name: 's-yanev',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/s-yanev');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'Ivan Daniluk',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/divan');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'sheentim',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/sheentim');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'Anders',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/RedRozio');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'Ahmed Elshorbagy',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/Ahmed-elshorbagy');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'Milad akarie',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/Milad-Akarie');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'Verry',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/novas1r1');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'coda538',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/coda538');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'billyio',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/billyio');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'Mehmet',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/mehmetkalayci');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'Tautvydas Šidlauskas',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/sidlatau');
             },
           ),
           PlutoContributorTile.invisible(
